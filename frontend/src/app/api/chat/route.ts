@@ -5,6 +5,7 @@ export async function POST(req: Request) {
 
   // Get the last message content
   const lastMessage = messages[messages.length - 1].content;
+console.log("Received:", lastMessage);
 
   // Connect to FastAPI backend
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
