@@ -33,6 +33,7 @@ export default function Home() {
       });
 
       const data = await response.json();
+      console.log("Response from backend:", data);
 
       const botMessage: Message = {
         id: Date.now().toString(),
@@ -43,7 +44,6 @@ export default function Home() {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error('Error fetching bot response:', error);
     } finally {
       setIsLoading(false);
     }

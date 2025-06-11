@@ -1,24 +1,38 @@
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  try {
+    const { messages } = await req.json();
 
-  // Get the last message content
-  const lastMessage = messages[messages.length - 1].content;
-console.log("Received:", lastMessage);
+    // Check messages validity
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ error: "No messages provided." }, { status: 400 });
+    }
 
-  // Connect to FastAPI backend
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const lastMessage = messages[messages.length - 1].content;
+    console.log("Received from UI:", lastMessage);
 
-  const response = await fetch(`${backendUrl}/chat`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ messages }),
-  });
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-  const data = await response.json();
+    const res = await fetch(`${backendUrl}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ messages }),
+    });
 
-  return NextResponse.json(data);
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("Backend Error:", err);
+      return NextResponse.json({ error: "Backend error", detail: err }, { status: 500 });
+    }
+
+    const data = await res.json();
+    return NextResponse.json(data);
+
+  } catch (error: any) {
+    console.error("Route handler error:", error);
+    return NextResponse.json({ error: "Internal Server Error", detail: error.message }, { status: 500 });
+  }
 }
