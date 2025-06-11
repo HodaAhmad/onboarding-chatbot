@@ -31,8 +31,16 @@ export async function POST(req: Request) {
     const data = await res.json();
     return NextResponse.json(data);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Route handler error:", error);
-    return NextResponse.json({ error: "Internal Server Error", detail: error.message }, { status: 500 });
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+
+    return NextResponse.json(
+      { error: "Internal Server Error", detail: errorMessage },
+      { status: 500 }
+    );
   }
+
 }

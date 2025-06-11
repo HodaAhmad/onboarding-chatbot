@@ -44,6 +44,7 @@ export default function Home() {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
+        console.error("Error sending message:", error);
     } finally {
       setIsLoading(false);
     }
