@@ -1,19 +1,19 @@
+# main.py
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from rag_utils import generate_answer_with_rag
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-genai.configure(api_key=GOOGLE_API_KEY)
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,17 +35,13 @@ async def chat_endpoint(chat: ChatRequest):
                 "note": "No Gemini API key found. This is a dummy response."
             }
 
-        model = genai.GenerativeModel("gemini-2.0-flash-lite-001")
+        user_input = chat.messages[-1].content
+        print("📥 User asked:", user_input)
 
-        chat_history = [
-            {"role": m.role, "parts": [m.content]} for m in chat.messages
-        ]
-        print("Sending to Gemini:", chat_history)
+        reply = generate_answer_with_rag(user_input, GOOGLE_API_KEY)
+        print("🤖 Gemini RAG reply:", reply)
 
-        response = model.generate_content(chat_history)
-        print("Gemini responded:", response.text)
-
-        return {"reply": response.text}
+        return {"reply": reply}
 
     except Exception as e:
         print("Gemini error:", str(e))

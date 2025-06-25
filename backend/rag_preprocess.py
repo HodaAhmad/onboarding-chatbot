@@ -13,8 +13,27 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
+from langchain_core.documents import Document  # optional, for clarity
 
 import os
+
+
+from sentence_transformers import SentenceTransformer
+
+class ChromaEmbeddingFunction:
+    def __init__(self, model_name="all-MiniLM-L6-v2"):
+        self.model = SentenceTransformer(model_name)
+
+    def __call__(self, input: list[str]) -> list[list[float]]:
+        return self.model.encode(input).tolist()
+
+    def embed_query(self, input: str) -> list[float]:
+        return self.model.encode([input])[0].tolist()
+
+    def embed_documents(self, inputs: list[str]) -> list[list[float]]:
+        return self.model.encode(inputs).tolist()
+
 
 # ========== Step 1: Load ==========
 def load_documents(folder_path):
@@ -49,27 +68,23 @@ def embed_chunks():
     Use a local transformer model to create vector representations (embeddings).
     These are used to match future questions with the most relevant text.
     """
-    embedding_model = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    embedding_model = ChromaEmbeddingFunction()
     print("[EMBED] Local embeddings created using HuggingFace model")
     return embedding_model
 
 # ========== Step 4: Store ==========
 def store_embeddings(chunks, embedding_model, persist_directory="vector_db"):
-    """
-    Store vectorized chunks into a database that supports similarity search.
-    This is where all documents live and are searchable later by the AI.
-    """
     vector_store = Chroma.from_documents(
         documents=chunks,
         embedding=embedding_model,
-        persist_directory=persist_directory
+        persist_directory=persist_directory,
+        collection_name="rag_collection"
     )
     print(f"[STORE] Vector store saved in '{persist_directory}' directory")
 
-
 if __name__ == "__main__":
-    PDF_FOLDER = r"C:/Users/User/OneDrive - TUM/Desktop/TUM MMDT/First semester/Foundations of generative AI/Project/Onboarding"
-
+    ##PDF_FOLDER = r"C:/Users/User/OneDrive - TUM/Desktop/TUM MMDT/First semester/Foundations of generative AI/Project/Onboarding"
+    PDF_FOLDER = 'data'
     PERSIST_DIR = "vector_db"
 
     documents = load_documents(PDF_FOLDER)
