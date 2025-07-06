@@ -92,7 +92,6 @@ if __name__ == "__main__":
     model = embed_chunks()
     store_embeddings(chunks, model, persist_directory=PERSIST_DIR)
 
-print("hello world")
 
 
 
