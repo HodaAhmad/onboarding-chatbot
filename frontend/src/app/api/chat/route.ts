@@ -19,7 +19,14 @@ export async function POST(req: Request) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({
+       messages: [
+      {
+        role: "user",
+        content: lastMessage  // e.g. "how many credits do I need?"
+      }
+    ]
+      }),
     });
 
     if (!res.ok) {
@@ -29,7 +36,22 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+
+    // Build the assistant's message
+    let botMessageContent = data.reply;
+    if (data.email_draft) {
+      botMessageContent += `\n\n📩 Suggested Email:\n${data.email_draft}`;
+    }
+
+    const botMessage = {
+      id: Date.now().toString(),
+      content: botMessageContent,
+      role: 'assistant',
+      timestamp: new Date(),
+    };
+
+    return NextResponse.json(botMessage);
+
 
   } catch (error: unknown) {
     console.error("Route handler error:", error);

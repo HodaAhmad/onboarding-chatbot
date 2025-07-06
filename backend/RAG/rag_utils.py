@@ -19,7 +19,7 @@ class ChromaEmbeddingFunction:
         return self.model.encode(inputs).tolist()
 
 
-def generate_answer_with_rag(user_question: str, api_key: str) -> str:
+def generate_answer_with_rag(user_question: str, api_key: str) -> dict:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash-lite-001")
 
@@ -30,21 +30,23 @@ def generate_answer_with_rag(user_question: str, api_key: str) -> str:
         collection_name="rag_collection"
     )
 
-    print(f"🔍 Querying vector DB with: {user_question}")
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
     docs = retriever.invoke(user_question)
-    print(f"📚 Retrieved {len(docs)} relevant chunks")
 
     if not docs:
-        return "Sorry, I couldn't find any relevant information."
-
-    for i, doc in enumerate(docs):
-        print(f"--- Chunk {i+1} ---\n{doc.page_content[:300]}...\n")
+        return {
+            "answer": "Sorry, I couldn't find any relevant information.",
+            "needs_escalation": True
+        }
 
     context = "\n\n".join([doc.page_content for doc in docs])
 
     prompt = f"""You are a helpful onboarding assistant at TUM.
 Use the following context to answer the user’s question.
+
+Instructions:
+- Be formal and clear.
+- If the context is not enough, say you are unable to help and recommend escalation.
 
 Context:
 {context}
@@ -55,4 +57,18 @@ Question:
 Answer:"""
 
     response = model.generate_content(prompt)
-    return response.text.strip()
+    answer = response.text.strip()
+
+    # Simple heuristic to detect failed answer
+    needs_escalation = any([
+        "I am unable to help" in answer,
+        "not sure" in answer.lower(),
+        "recommend escalation" in answer.lower(),
+        "sorry" in answer.lower(),
+        len(answer) < 30  # Very short = likely unhelpful
+    ])
+
+    return {
+        "answer": answer,
+        "needs_escalation": needs_escalation
+    }

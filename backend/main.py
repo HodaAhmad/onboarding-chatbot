@@ -3,8 +3,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import os
+from RAG.rag_utils import generate_answer_with_rag
 from dotenv import load_dotenv
-from rag_utils import generate_answer_with_rag
+
+from escalation.escalation_formatter import EscalationFormatter  
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -38,10 +40,26 @@ async def chat_endpoint(chat: ChatRequest):
         user_input = chat.messages[-1].content
         print("📥 User asked:", user_input)
 
-        reply = generate_answer_with_rag(user_input, GOOGLE_API_KEY)
-        print("🤖 Gemini RAG reply:", reply)
+        result = generate_answer_with_rag(user_input, GOOGLE_API_KEY)
+        print("🤖 Gemini RAG reply:", result["answer"])
 
-        return {"reply": reply}
+        if result["needs_escalation"]:
+            print("🚨 Escalation triggered for:", user_input)
+
+            ef = EscalationFormatter("data/List.xlsx", GOOGLE_API_KEY)
+            escalation_prompt = ef.generate_email(user_input, topic="General")  # Can add real topic detection later
+            print("📧 Generated escalation email:\n", escalation_prompt)
+
+            return {
+                "reply": result["answer"],
+                "escalation": True,
+                "email_draft": escalation_prompt
+            }
+
+        return {
+            "reply": result["answer"],
+            "escalation": False
+        }
 
     except Exception as e:
         print("Gemini error:", str(e))

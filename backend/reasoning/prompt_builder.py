@@ -10,6 +10,7 @@ Instructions:
 - Respond formally and clearly.
 - Do not invent or speculate.
 - If the context does not contain the answer, say you are unable to help and recommend escalation.
+- Important: Make sure to include the contact's email address in the final email body.
 
 Context:
 \"\"\"{context}\"\"\"
@@ -30,7 +31,8 @@ A student has an unresolved question that requires escalation. Below is an examp
 ---
 Example:
 Student's Question: "I need help understanding how to register for my courses."
-Topic: Course Registration
+Topic: Course Registration Your response should be a complete, polite email in the same format.
+
 Contact: Dr. Eva Schmitt <eva.schmitt@tum.de>
 
 Email:
@@ -45,6 +47,7 @@ Best regards,
 ---
 
 Now, based on the student's question below, generate a similar escalation email:
+Important: Make sure to include the contact's email address in the final email body.
 
 Student's Question:
 "{question}"

@@ -18,26 +18,50 @@ class ConversationRouter:
             }
         """
         if state == "closed" or intent == "goodbye":
-            return {"action": "close", "message": "Thank you for using the assistant. Goodbye!"}
-
-        if state == "escalating" or intent == "escalation" or attempts >= 2:
-            email = self.escalation_handler.generate_email(user_input)
+            return {
+                "action": "close",
+                "message": "Thank you for using the assistant. Goodbye!"
+            }
+        
+        if intent == "greeting":
+            return {
+                "action": "clarify",
+                "message": "Hello there! How can I assist you today?"
+            }
+        
+        # Escalate if too many clarification attempts or explicit escalation
+        if attempts >= 2 or intent == "escalation":
+            email_prompt = self.escalation_handler.build_prompt(user_input, topic="general")
             return {
                 "action": "escalate",
                 "message": "I'm unable to find the information you need. Please consider sending this email to the responsible contact:",
-                "email": email
+                "email": email_prompt
             }
 
-        if state == "retrieving" and intent in ["information_request", "clarification"]:
+        # Normal retrieval if intent is recognized
+        if state == "retrieving" and intent == "information_request":
             context = self.retriever.retrieve(user_input)
-            return {
-                "action": "retrieve",
-                "context": context,
-                "message": "Here is what I found based on your question."
-            }
+            if context:
+                return {
+                    "action": "retrieve",
+                    "context": context,
+                    "message": "Here is what I found based on your question."
+                }
+            else:
+                email_prompt = self.escalation_handler.build_prompt(user_input, topic="general")
+                return {
+                    "action": "escalate",
+                    "message": "I'm unable to find the information you need. Please consider sending this email to the responsible contact:",
+                    "email": email_prompt
+                }
 
-        return {"action": "clarify", "message": "Could you please clarify your question a bit more?"}
-    
+        # Clarify if unsure or unrecognized
+        return {
+            "action": "clarify",
+            "message": "Could you please clarify your question a bit more?"
+        }
+
+            
 
 
 # ======================================

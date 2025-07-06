@@ -9,6 +9,7 @@ export function MessageBubble({ role, content }: MessageBubbleProps) {
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2`}>
       <div
+      style={{ whiteSpace: 'pre-line' }}
         className={`px-4 py-2 rounded-lg whitespace-pre-wrap break-words shadow-sm
         ${isUser 
           ? 'bg-blue-500 text-white max-w-[75%] md:max-w-[60%] lg:max-w-[50%]' 

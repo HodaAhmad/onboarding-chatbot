@@ -34,10 +34,20 @@ export default function Home() {
 
       const data = await response.json();
       console.log("Response from backend:", data);
+      console.log("🔁 Response from backend:", data);
+      console.log("📨 Reply Content:", data.content);
+      console.log("📬 Email Content:", data.email);
+
+
+      let replyContent = data.content || 'Sorry, I couldn’t generate a reply.';;
+
+      if (data.email_draft) {
+        replyContent += `\n\n📩 Here's a suggested email you can send:\n\n${data.email_draft}`;
+      }
 
       const botMessage: Message = {
         id: Date.now().toString(),
-        content: data.reply,
+        content: replyContent,
         role: 'assistant',
         timestamp: new Date(),
       };

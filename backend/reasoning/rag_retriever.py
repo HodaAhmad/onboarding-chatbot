@@ -34,6 +34,7 @@ class RAGRetriever:
     def retrieve(self, query: str) -> str:
         """Retrieve top relevant chunks and return as formatted text."""
         results = self.retriever.invoke(query)
+        print("🔎 RAG Retrieved Results:", results)
         if not results:
             return ""
         return "\n\n".join(doc.page_content for doc in results)
