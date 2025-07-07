@@ -74,8 +74,8 @@ Create a `.env` file in the backend folder with your OpenAI key:
 OPENAI_API_KEY=your-openai-key-here
 ```
 
-```RAG
-python rag_preprocess.py
+```RAG and vector DB 
+python RAG/rag_preprocess.py
 ```
 
 Start the backend server:
