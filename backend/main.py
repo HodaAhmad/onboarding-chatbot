@@ -45,16 +45,21 @@ async def chat_endpoint(chat: ChatRequest):
 
         if result["needs_escalation"]:
             print("🚨 Escalation triggered for:", user_input)
+            Topics=["International Affairs","Campus Life & Services", "Academic & Courses", "Admission & Enrollment"]
+            prompt_escalation=f"According to the {user_input}, identify the topic from here: {Topics}. If the topic is not clear, use 'General'. The ouput should be only the given name topic such as 'Campus Life & Services' , do not anything else"
+            topic= generate_answer_with_rag(prompt_escalation, GOOGLE_API_KEY)
+            print("🔍 Identified topic for escalation:", topic)
+            if topic != "General":
+                print("🔍 Identified topic for escalation:", topic)
+                ef = EscalationFormatter("data/List.xlsx", GOOGLE_API_KEY)
+                escalation_prompt = ef.generate_email(user_input, topic=topic)  # Can add real topic detection later
+                print("📧 Generated escalation email:\n", escalation_prompt)
 
-            ef = EscalationFormatter("data/List.xlsx", GOOGLE_API_KEY)
-            escalation_prompt = ef.generate_email(user_input, topic="General")  # Can add real topic detection later
-            print("📧 Generated escalation email:\n", escalation_prompt)
-
-            return {
-                "reply": result["answer"],
-                "escalation": True,
-                "email_draft": escalation_prompt
-            }
+                return {
+                    "reply": result["answer"],
+                    "escalation": True,
+                    "email_draft": escalation_prompt
+                }
 
         return {
             "reply": result["answer"],
