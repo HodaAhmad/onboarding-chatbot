@@ -1,6 +1,6 @@
 # rag_utils.py
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 import google.generativeai as genai
 
 from sentence_transformers import SentenceTransformer

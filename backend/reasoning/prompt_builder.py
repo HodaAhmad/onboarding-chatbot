@@ -58,6 +58,59 @@ Contact: {contact_name} <{contact_email}>
 Your response should be a complete, polite email in the same format.
 """.strip()
 
+# New function for dynamic prompting based on intent
+def build_intent_prompt(intent: str, user_input: str) -> str:
+    print(f"🛠️ Building intent prompt for '{intent}' with input:\n{user_input}")
+    if intent == "Chitchat":
+        return f"""
+You are a friendly university assistant. Reply warmly and briefly to this casual message:
+
+"{user_input}"
+""".strip()
+
+    elif intent == "Clarification_Request":
+        return f"""
+The user is asking for clarification. Respond helpfully and politely, assuming they want to understand more about onboarding or your capabilities.
+
+Message:
+"{user_input}"
+""".strip()
+
+    elif intent == "OffTopic":
+        return f"""
+The user’s message is unrelated to TUM onboarding. Politely inform them that your role is limited to onboarding support.
+
+Message:
+"{user_input}"
+""".strip()
+
+    elif intent == "Navigation_Help":
+        return f"""
+The user is asking how to use the onboarding assistant. Explain that they can ask questions about studying, enrolling, housing, or support services at TUM.
+
+Message:
+"{user_input}"
+""".strip()
+
+    elif intent == "System_Issue_Report":
+        return f"""
+The user is reporting a technical issue. Acknowledge the problem and advise them to contact the TUM IT support team or relevant office.
+
+Message:
+"{user_input}"
+""".strip()
+
+    else:
+        return f"""
+You are a TUM onboarding assistant. Respond clearly and formally to this question.
+
+Question:
+"{user_input}"
+""".strip()
+
+
+
+
 
 # ---- Example Usage ----
 if __name__ == "__main__":
