@@ -4,57 +4,159 @@ import { useState } from 'react';
 import { Header } from '@/components/Header';
 import { ChatBox } from '@/components/ChatBox';
 import { Message } from '@/types/chat';
-import { FAQSuggestions } from '@/components/FAQSuggestions';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingFAQ, setPendingFAQ] = useState<string | null>(null);
+  const [program, setProgram] = useState<string | null>(null); //for handling program selection
 
   const suggestedQuestions = [
-    "How do I register for my courses?",
-    "What are the visa requirements?",
-    "Where do I find my class schedule?",
-    "How many ECTS credits do I need?"
+    {
+      title: "Onboarding",
+      questions: ["Campus Card", "Contact", "Sports"]
+    },
+    {
+      title: "Semester",
+      questions: ["Total Credits Needed", "Semester Schedule", "Semester Exams"]
+    },
   ];
+
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    const detected = detectProgram(trimmed);
+
+    // If user is just confirming their program (like "MIE")
+    if (detected && !pendingFAQ && !trimmed.match(/\w{3,}/g)) {
+      setProgram(detected);
+      
+      const confirmOnlyMessage: Message = {
+        id: crypto.randomUUID(),
+        content: `Thanks for confirming you're in the ${detected} program! How can I help you today?`,
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput('');
+      return;
+    }
 
     const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input,
+      id: crypto.randomUUID(),
+      content: trimmed,
       role: 'user',
       timestamp: new Date(),
     };
 
+    const newProgram = detected || program;
+
+    if (!newProgram) {
+      // Ask for program if still unknown
+      setPendingFAQ(trimmed);
+      const botMessage: Message = {
+        id: crypto.randomUUID(),
+        content: `Hello 👋 Before we continue, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Data & Technology (MMDT)\n• Information Engineering (MIE)`,
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, userMessage, botMessage]);
+      setInput('');
+      return;
+    }
+
+    if (detected && pendingFAQ) {
+      // User just gave us their program, and there's a pending question
+      setProgram(detected);
+      setPendingFAQ(null);
+
+      const confirmMsg: Message = {
+        id: crypto.randomUUID(),
+        content: `Thanks for confirming you're in the ${detected} program! Answering your earlier question now...`,
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, userMessage]);
+      setInput('');
+      setIsLoading(true);
+      await sendToBackend(pendingFAQ, detected);
+      setIsLoading(false);
+      return;
+    }
+
+    // Normal question handling
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    await sendToBackend(trimmed, newProgram);
+    setIsLoading(false);
+  };
+
+
+  // Function to detect the program based on user input
+  function detectProgram(message: string): string | null {
+    const msg = message.toLowerCase();
+
+    if (msg.includes("mim") || msg.includes("master in management")) return "MIM";
+    if (msg.includes("mmdt") || msg.includes("data & technology") || msg.includes("management in data")) return "MMDT";
+    if (msg.includes("mie") || msg.includes("information engineering")) return "MIE";
+
+    return null;
+  }
+
+
+  const sendFAQMessage = async (question: string) => {
+    if (!program) {
+      setPendingFAQ(question);
+
+      const botMessage: Message = {
+        id: crypto.randomUUID(),
+        content: `Before I can help, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Data & Technology (MMDT)\n• Information Engineering (MIE)`,
+        role: 'assistant',
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+      return;
+    }
+
+    // If program is known, send the FAQ using shared logic
+    setIsLoading(true);
+    await sendToBackend(question, program);
+    setIsLoading(false);
+  };
+
+
+  const sendToBackend = async (question: string, programParam: string) => {
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      content: question,
+      role: 'user',
+      timestamp: new Date(),
+    };
 
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ messages: [...messages, userMessage], program: programParam }),
       });
 
       const data = await response.json();
-      console.log("Response from backend:", data);
-      console.log("🔁 Response from backend:", data);
-      console.log("📨 Reply Content:", data.content);
-      console.log("📬 Email Content:", data.email);
 
-
-      let replyContent = data.content || 'Sorry, I couldn’t generate a reply.';;
-
+      let replyContent = data.content || 'Sorry, I couldn’t generate a reply.';
       if (data.email_draft) {
-        replyContent += `\n\n📩 Here's a suggested email you can send:\n\n${data.email_draft}`;
+        replyContent += `\n\n📩 Suggested Email:\n${data.email_draft}`;
       }
 
       const botMessage: Message = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
         content: replyContent,
         role: 'assistant',
         timestamp: new Date(),
@@ -62,13 +164,13 @@ export default function Home() {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-        console.error("Error sending message:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error sending message:", error);
     }
   };
 
-  const sendFAQMessage = async (question: string) => {
+
+
+  /*const sendFAQMessage = async (question: string) => {
     const userMessage: Message = {
       id: Date.now().toString(),
       content: question,
@@ -83,7 +185,7 @@ export default function Home() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        body: JSON.stringify({ messages: [...messages, userMessage], program }),  
       });
 
       const data = await response.json();
@@ -106,21 +208,21 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  };*/
 
 
 return (
     <div className="flex flex-col h-screen bg-gray-50">
       <Header />
-      <main className="flex-1 overflow-auto p-4 px-24">
+      <main className="flex-1 overflow-auto p-4 px-18">
         <ChatBox
           messages={messages}
           input={input}
           setInput={setInput}
           handleSendMessage={handleSendMessage}
           isLoading={isLoading}
-            suggestedQuestions={suggestedQuestions}
-            onSelectFAQ={sendFAQMessage}
+          suggestedQuestions={suggestedQuestions}
+          onSelectFAQ={sendFAQMessage}
         />
       </main>
     </div>

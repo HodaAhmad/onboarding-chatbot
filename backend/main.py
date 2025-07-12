@@ -9,8 +9,13 @@ from RAG.rag_utils import generate_answer_with_rag
 from escalation.escalation_formatter import EscalationFormatter, get_topic_list_from_excel, identify_topic_from_answer
 from reasoning.prompt_builder import build_intent_prompt
 from escalation.escalation_formatter import classify_user_input 
+from utils import extract_program_from_messages
 
 import google.generativeai as genai
+
+
+#suported programss
+VALID_PROGRAMS = ["MIM", "MMDT", "MIE"]
 
 # Load API key
 load_dotenv()
@@ -34,50 +39,61 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: list[ChatMessage]
+    program: str | None = None  
+
 
 # === Final /chat endpoint ===
 @app.post("/chat")
 async def chat_endpoint(chat: ChatRequest):
     try:
-        if not GOOGLE_API_KEY:
+        ...
+        user_input = chat.messages[-1].content
+        print("User asked:", user_input)
+
+        #Check if user selected program already
+        chat_history = [msg.content for msg in chat.messages]
+
+        #Use provided program from frontend if exists
+        program_selected = chat.program or extract_program_from_messages(chat_history)
+        print("[DEBUG] Extracted program:", program_selected)
+        if user_input.strip().upper() in VALID_PROGRAMS:
             return {
-                "reply": f"(Demo mode) You said: {chat.messages[-1].content}",
-                "note": "No Gemini API key found. This is a dummy response."
+                "reply": f"Thanks for confirming you're in the {program_selected} program! How can I help you today?",
+                "escalation": False
             }
 
-        user_input = chat.messages[-1].content
-        print("📥 User asked:", user_input) # Incoming user message
-        
-        # 🔍 Step 1: Detect intent
+        if not program_selected:
+            return {
+                "reply": "Hello 👋 Before we continue, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Data & Technology (MMDT)\n• Information Engineering (MIE)",
+                "program_requested": True
+            }
+
+        #Step 1: Detect intent
         intent = classify_user_input(user_input, GOOGLE_API_KEY)
-        print("🎯 Detected intent:", intent) # What Gemini thinks the user's goal is
+        print("Detected intent:", intent) # What Gemini thinks the user's goal is
 
-        # 📚 Step 2: Run RAG for TUM-related messages
-        if intent in ["Onboarding_FAQ", "Clarification_Request"]:
-            result = generate_answer_with_rag(user_input, GOOGLE_API_KEY)
-            print("🤖 Gemini RAG reply:", result["answer"]) # Final RAG-based answer before escalation logic
+        #Step 2: Run RAG if it's an onboarding question OR a valid program was selected
+        if intent in ["Onboarding_FAQ", "Clarification_Request"] or program_selected:
+            result = generate_answer_with_rag(user_input, GOOGLE_API_KEY, program_selected)
+            print("Gemini RAG reply:", result["answer"])
 
-            # 📭 Step 3: If no context retrieved, return fallback answer
             if result["answer"].startswith("Sorry, I couldn't find"):
-                print("📭 No context retrieved from vector DB")  # Confirm DB miss
+                print("No context retrieved from vector DB")
                 return {
                     "reply": result["answer"],
                     "escalation": False
                 }
 
-            # 🚨 Step 4: Trigger escalation if needed
             if result["needs_escalation"]:
-                print("🚨 Escalation triggered for:", user_input)
-                print("🚨 Escalation triggered due to low-confidence answer")  # Escalation heuristic triggered
+                print("Escalation triggered for:", user_input)
                 contact_file_path = "data/List.xlsx"
                 topics = get_topic_list_from_excel(contact_file_path)
                 topic = identify_topic_from_answer(result["answer"], GOOGLE_API_KEY)
-                print("🔍 Identified topic for escalation:", topic) # Topic Gemini matched from answer
+                print("Identified topic for escalation:", topic)
 
-                # ✉️ Always allow escalation, even for "General"
                 ef = EscalationFormatter(contact_file_path, GOOGLE_API_KEY)
                 escalation_prompt = ef.generate_email(user_input, topic=topic)
-                print("📧 Generated escalation email:\n", escalation_prompt) # Final email draft preview
+                print("Generated escalation email:\n", escalation_prompt)
 
                 return {
                     "reply": result["answer"],
@@ -85,13 +101,13 @@ async def chat_endpoint(chat: ChatRequest):
                     "email_draft": escalation_prompt
                 }
 
-            # ✅ Step 5: Return regular answer if no escalation
             return {
                 "reply": result["answer"],
                 "escalation": False
             }
 
-        # 💬 Step 6: Handle non-RAG intents dynamically
+
+        #Step 6: Handle non-RAG intents dynamically
         else:
             prompt = build_intent_prompt(intent, user_input)
             model = genai.GenerativeModel("gemini-2.0-flash-lite-001")

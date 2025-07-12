@@ -2,7 +2,7 @@ import pandas as pd
 import google.generativeai as genai
 from reasoning.prompt_builder import build_escalation_prompt
 
-# 📌 Intent classifier using Gemini
+#Intent classifier using Gemini
 def classify_user_input(user_input: str, api_key: str) -> str:
     prompt = f"""
 You are an intent classification system. Classify the user's message into one of the following **exact categories**:
@@ -46,7 +46,7 @@ def identify_topic_from_answer(answer_text: str, api_key: str) -> str:
     Includes few-shot examples and inline descriptions.
     """
 
-    # 💬 Descriptions to help Gemini reason semantically
+    #Descriptions to help Gemini reason semantically
     topic_descriptions = {
         "International Affairs": "Topics related to international students, visas, or global mobility",
         "Campus Life & Services": "Questions about housing, cafeterias, sports, student services",
@@ -54,7 +54,7 @@ def identify_topic_from_answer(answer_text: str, api_key: str) -> str:
         "Admission & Enrollment": "Application process, deadlines, requirements, enrollment status"
     }
 
-    # 🧠 Few-shot examples to ensure clean topic output
+    #Few-shot examples to ensure clean topic output
     few_shot_examples = """
 Examples:
 
@@ -71,7 +71,7 @@ Answer: I recommend contacting housing services for details about accommodation.
 Campus Life & Services
 """
 
-    # 🧠 Prompt construction with descriptions + examples
+    #Prompt construction with descriptions + examples
     prompt_lines = [
         "You are an assistant that classifies a student's onboarding-related question into one of the following topics:\n"
     ]
@@ -90,14 +90,14 @@ Answer:
 
     prompt = "\n".join(prompt_lines)
 
-    # 🔍 Send to Gemini
+    # Send to Gemini
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash-lite-001")
     response = model.generate_content(prompt)
     topic = response.text.strip()
 
-    # 🖨️ Debug print to inspect exact Gemini output
-    print(f"🔍 Gemini classified topic as: '{topic}'")
+    #Debug print to inspect exact Gemini output
+    print(f"Gemini classified topic as: '{topic}'")
 
     return topic
 
@@ -111,7 +111,7 @@ class EscalationFormatter:
 
     def match_contact(self, topic: str) -> dict:
         matches = self.contacts_df[self.contacts_df['Topic'].str.lower() == topic.lower()]
-        print(f"👤 Matching contact for topic: {topic}")  # Debug topic before lookup
+        print(f"Matching contact for topic: {topic}")  # Debug topic before lookup
         if not matches.empty:
             row = matches.iloc[0]
             return {
@@ -127,7 +127,7 @@ class EscalationFormatter:
 
     def generate_email(self, user_question: str, topic: str) -> str:
         contact = self.match_contact(topic)
-        print(f"📨 Building escalation email for topic '{topic}' and question:\n{user_question}")
+        print(f"Building escalation email for topic '{topic}' and question:\n{user_question}")
         prompt = build_escalation_prompt(
             question=user_question,
             topic=contact["topic"],

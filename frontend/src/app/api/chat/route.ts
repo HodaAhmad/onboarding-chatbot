@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { messages, program } = await req.json(); //get program and messages from request body
 
     // Check messages validity
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -21,11 +21,12 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
        messages: [
-      {
-        role: "user",
-        content: lastMessage  // e.g. "how many credits do I need?"
-      }
-    ]
+          {
+            role: "user",
+            content: lastMessage  // e.g. "how many credits do I need?"
+          }
+        ],
+        program,
       }),
     });
 

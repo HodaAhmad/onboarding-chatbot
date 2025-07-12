@@ -1,27 +1,34 @@
-'use client';
-import React from 'react';
+// components/FAQSuggestions.tsx
 
-type FAQSuggestionsProps = {
+export interface FAQCategory {
+  title: string;
   questions: string[];
-  onSelect: (question: string) => void;
-};
+}
 
-export const FAQSuggestions: React.FC<FAQSuggestionsProps> = ({ questions, onSelect }) => {
+export interface Props {
+  categories: FAQCategory[];
+  onSelect: (question: string) => void;
+}
+
+export function FAQSuggestions({ categories, onSelect }: Props) {
   return (
-    <div className="mt-6 animate-fade-in-down">
-      <h4 className="text-gray-700 font-semibold mb-2">Try one of these:</h4>
-      <div className="flex flex-wrap gap-3 ">
-        {questions.map((q, i) => (
-          <button
-            key={q}
-            onClick={() => onSelect(q)}
-            className="cursor-pointer bg-white shadow-md px-4 py-2 rounded-2xl text-sm text-gray-700 border hover:bg-gray-100 transition-all duration-200"
-            style={{ animationDelay: `${i * 100}ms` }}
-          >
-            {q}
-          </button>
-        ))}
-      </div>
+    <div className="flex flex-row justify-center gap-4 mt-8">
+      {categories.map((cat) => (
+        <div key={cat.title} className="bg-blue-100 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800">{cat.title}</h2>
+          <div className="flex flex-wrap gap-3 min-w-[400px] items-center justify-center">
+            {cat.questions.map((q) => (
+              <button
+                key={q}
+                onClick={() => onSelect(q)}
+                className="bg-white cursor-pointer text-blue-900 px-4 py-2 rounded-full hover:bg-blue-500 hover:text-white transition text-sm"
+              >
+                {q}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
-};
+}

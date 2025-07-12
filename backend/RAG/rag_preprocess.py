@@ -82,6 +82,7 @@ def store_embeddings(chunks, embedding_model, persist_directory="vector_db"):
     )
     print(f"[STORE] Vector store saved in '{persist_directory}' directory")
 
+'''
 if __name__ == "__main__":
     ##PDF_FOLDER = r"C:/Users/User/OneDrive - TUM/Desktop/TUM MMDT/First semester/Foundations of generative AI/Project/Onboarding"
     PDF_FOLDER = 'data'
@@ -91,8 +92,27 @@ if __name__ == "__main__":
     chunks = split_documents(documents)
     model = embed_chunks()
     store_embeddings(chunks, model, persist_directory=PERSIST_DIR)
+'''
 
+if __name__ == "__main__":
+    BASE_DATA_DIR = "data"
+    BASE_VECTOR_DIR = "vector_db"
 
+    PROGRAM_FOLDERS = ["MIM", "MMDT", "MIE", "General"]  # Add 'General' here
 
+    for program in PROGRAM_FOLDERS:
+        print(f"\n[INFO] Processing program: {program}")
+        pdf_folder = os.path.join(BASE_DATA_DIR, program)
+        persist_folder = os.path.join(
+            BASE_VECTOR_DIR, 
+            "general_chunks" if program == "General" else program.lower()
+        )
 
+        documents = load_documents(pdf_folder)
+        if not documents:
+            print(f"[WARN] No documents found in {pdf_folder}, skipping.")
+            continue
 
+        chunks = split_documents(documents)
+        model = embed_chunks()
+        store_embeddings(chunks, model, persist_directory=persist_folder)
