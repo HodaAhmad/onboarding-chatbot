@@ -1,7 +1,3 @@
-# Step 3: Reasoning Layer - PromptBuilder
-# ========================================
-# This module builds structured prompts for Gemini depending on the conversation phase.
-
 def build_retrieval_prompt(context: str, question: str) -> str:
     return f"""
 You are a university onboarding assistant for TUM. Use the provided context to answer the student's question.
@@ -60,7 +56,7 @@ Your response should be a complete, polite email in the same format.
 
 # New function for dynamic prompting based on intent
 def build_intent_prompt(intent: str, user_input: str) -> str:
-    print(f"🛠️ Building intent prompt for '{intent}' with input:\n{user_input}")
+    print(f"Building intent prompt for '{intent}' with input:\n{user_input}")
     if intent == "Chitchat":
         return f"""
 You are a friendly university assistant. Reply warmly and briefly to this casual message:
@@ -114,9 +110,7 @@ Question:
 
 # ---- Example Usage ----
 if __name__ == "__main__":
-    sample_context = "TUM students must register for courses by October 15."
     sample_question = "What’s the deadline to register for my courses?"
-    print(build_retrieval_prompt(sample_context, sample_question))
 
     print("\n---\n")
     print(build_escalation_prompt(
@@ -125,3 +119,8 @@ if __name__ == "__main__":
         contact_name="Dr. Anna Keller",
         contact_email="anna.keller@tum.de"
     ))
+
+
+
+
+

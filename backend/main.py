@@ -73,7 +73,7 @@ async def chat_endpoint(chat: ChatRequest):
         print("Detected intent:", intent) # What Gemini thinks the user's goal is
 
         #Step 2: Run RAG if it's an onboarding question OR a valid program was selected
-        if intent in ["Onboarding_FAQ", "Clarification_Request"] or program_selected:
+        if intent in ["Onboarding_FAQ", "Clarification_Request"]:
             result = generate_answer_with_rag(user_input, GOOGLE_API_KEY, program_selected)
             print("Gemini RAG reply:", result["answer"])
 
@@ -121,4 +121,3 @@ async def chat_endpoint(chat: ChatRequest):
     except Exception as e:
         print("Gemini error:", str(e))
         return {"error": "Gemini failed to respond properly.", "details": str(e)}
-

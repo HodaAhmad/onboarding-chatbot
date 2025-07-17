@@ -51,7 +51,7 @@ def identify_topic_from_answer(answer_text: str, api_key: str) -> str:
         "International Affairs": "Topics related to international students, visas, or global mobility",
         "Campus Life & Services": "Questions about housing, cafeterias, sports, student services",
         "Academic & Courses": "Questions about programs, courses, professors, exams, ECTS, or credits",
-        "Admission & Enrollment": "Application process, deadlines, requirements, enrollment status"
+        "Admission & Enrollment": "Application process, deadlines, requirements, enrollment status",
     }
 
     #Few-shot examples to ensure clean topic output
