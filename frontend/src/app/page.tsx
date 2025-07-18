@@ -15,7 +15,7 @@ export default function Home() {
   const suggestedQuestions = [
     {
       title: "Onboarding",
-      questions: ["Campus Card", "Contact", "Sports"]
+      questions: ["Campus Card", "Program Contacts", "Student Clubs in Campus"]
     },
     {
       title: "Semester",
@@ -61,7 +61,7 @@ export default function Home() {
       setPendingFAQ(trimmed);
       const botMessage: Message = {
         id: crypto.randomUUID(),
-        content: `Hello 👋 Before we continue, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Data & Technology (MMDT)\n• Information Engineering (MIE)`,
+        content: `Hello 👋 Before we continue, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Digital Technology (MMDT)\n• Information Engineering (MIE)`,
         role: 'assistant',
         timestamp: new Date(),
       };
@@ -104,7 +104,7 @@ export default function Home() {
     const msg = message.toLowerCase();
 
     if (msg.includes("mim") || msg.includes("master in management")) return "MIM";
-    if (msg.includes("mmdt") || msg.includes("data & technology") || msg.includes("management in data")) return "MMDT";
+    if (msg.includes("mmdt") || msg.includes("digital technology") || msg.includes("management in digital")) return "MMDT";
     if (msg.includes("mie") || msg.includes("information engineering")) return "MIE";
 
     return null;
@@ -117,7 +117,7 @@ export default function Home() {
 
       const botMessage: Message = {
         id: crypto.randomUUID(),
-        content: `Before I can help, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Data & Technology (MMDT)\n• Information Engineering (MIE)`,
+        content: `Before I can help, can you let me know which Masters program you're in?\n\n• Master in Management (MIM)\n• Management in Digital Technology (MMDT)\n• Information Engineering (MIE)`,
         role: 'assistant',
         timestamp: new Date(),
       };

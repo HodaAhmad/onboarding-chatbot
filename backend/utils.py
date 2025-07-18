@@ -1,6 +1,6 @@
 PROGRAM_ALIASES = {
     "MIM": ["master in management", "mim"],
-    "MMDT": ["master in management and data technology", "management in data and technology", "mmdt"],
+    "MMDT": ["master in management and digital technology", "management in digital technology", "mmdt"],
     "MIE": ["master in information engineering", "information engineering", "mie", "ie"]
 }
 
