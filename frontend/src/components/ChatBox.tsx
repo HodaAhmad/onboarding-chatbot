@@ -32,7 +32,7 @@ export function ChatBox({
                 <span className="text-blue-600">Hello There!</span>{' '}
               </h1>
               <p className="text-gray-600 text-lg mb-6">
-                Just ask me anything on your related to your onboarding, I will do my best to help you.
+                Just ask me anything related to your onboarding, I will do my best to help you.
               </p>
 
               <FAQSuggestions categories={suggestedQuestions} onSelect={onSelectFAQ} />
