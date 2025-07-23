@@ -71,7 +71,7 @@ pip install -r requirements.txt
 Create a `.env` file in the backend folder with your OpenAI key:
 
 ```env
-OPENAI_API_KEY=your-openai-key-here
+GOOGLE_API_KEY=your-gemini-key-here
 ```
 
 ```RAG and vector DB 
