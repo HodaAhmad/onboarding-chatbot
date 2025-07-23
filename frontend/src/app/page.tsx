@@ -35,13 +35,6 @@ export default function Home() {
     if (detected && !pendingFAQ && !trimmed.match(/\w{3,}/g)) {
       setProgram(detected);
       
-      const confirmOnlyMessage: Message = {
-        id: crypto.randomUUID(),
-        content: `Thanks for confirming you're in the ${detected} program! How can I help you today?`,
-        role: 'assistant',
-        timestamp: new Date(),
-      };
-
       setMessages((prev) => [...prev, userMessage]);
       setInput('');
       return;
@@ -74,13 +67,6 @@ export default function Home() {
       // User just gave us their program, and there's a pending question
       setProgram(detected);
       setPendingFAQ(null);
-
-      const confirmMsg: Message = {
-        id: crypto.randomUUID(),
-        content: `Thanks for confirming you're in the ${detected} program! Answering your earlier question now...`,
-        role: 'assistant',
-        timestamp: new Date(),
-      };
 
       setMessages((prev) => [...prev, userMessage]);
       setInput('');
