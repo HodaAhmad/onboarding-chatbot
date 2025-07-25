@@ -5,6 +5,8 @@ backend/.venv/
 
 #ignore env files
 .env
+**/.env
+
 
 # Bytecode cache
 __pycache__/
